@@ -118,4 +118,5 @@ struct class ospf_header {
   /*
    * An LSA Header
    */
+  *u_char LSA_header;
 }
