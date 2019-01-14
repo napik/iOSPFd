@@ -10,6 +10,8 @@
 
 using namespace std;
 
+void send_ospf();
+
 /*
 
 Version		- 2 (1-byte)
@@ -46,17 +48,17 @@ Authentication	 -  Authentication data to verify the packet's integrity
  |                       Authentication                          |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
-struct class ospf_header {
+struct ospf_header {
   uint8_t version;
   uint8_t type;
   uint16_t plength;
   uint32_t router_id;
-  uint32_t router_id;
+  uint32_t area_id;
   uint16_t checksum;
   uint16_t autype;
   uint32_t Authentication1;
   uint32_t Authentication2;
-}
+};
 
 /*****************************************************************
  *                        Hello Packet                           *
@@ -76,7 +78,7 @@ struct class ospf_header {
  |                          Neighbor                             |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
-struct class ospf_hello {
+struct ospf_hello {
   uint32_t NetworkMask;
   uint16_t HelloInterval;
   uint8_t option;
@@ -85,7 +87,7 @@ struct class ospf_hello {
   uint32_t DesignatedRouter;
   uint32_t BackupDesignatedRouter;
   uint32_t Neighbor;
-}
+};
 
 /*****************************************************************
  *                     Database Descriptor                       *
@@ -103,14 +105,14 @@ struct class ospf_hello {
  |                                                               |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
-struct class ospf_header {
+struct ospf_dd {
   uint16_t version;
   uint8_t options;
-  u_char 0;
-  u_char 0;
-  u_char 0;
-  u_char 0;
-  u_char 0;
+  u_char u1;
+  u_char u2;
+  u_char u3;
+  u_char u4;
+  u_char u5;
   u_char I;
   u_char M;
   u_char MS;
@@ -118,5 +120,5 @@ struct class ospf_header {
   /*
    * An LSA Header
    */
-  *u_char LSA_header;
-}
+  u_char *LSA_header;
+};
