@@ -30,7 +30,7 @@ void send_ospf() {
 
   struct sockaddr_in dest;
 
-  sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+  sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_RAW);
   // sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
   if (sockfd < 0) {
     perror("socket() send");
