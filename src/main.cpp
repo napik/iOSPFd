@@ -8,5 +8,13 @@
 #include <thread>
 #include <variant>
 #include <vector>
+#include <thread> 
 
-int main() { send_ospf(); }
+using namespace std;
+
+int main() { 
+	std::thread thr_send = std::thread(ospf_send);
+	std::thread thr_recv = std::thread(ospf_recv);
+	thr_send.join();
+	thr_recv.join();
+}

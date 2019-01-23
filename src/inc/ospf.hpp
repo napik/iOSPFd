@@ -10,7 +10,8 @@
 
 using namespace std;
 
-void send_ospf();
+void ospf_send();
+void ospf_recv();
 
 /*
 
@@ -56,8 +57,7 @@ struct ospf_header {
   uint32_t area_id;
   uint16_t checksum;
   uint16_t autype;
-  uint32_t Authentication1;
-  uint32_t Authentication2;
+  uint64_t Authentication;
 };
 
 /*****************************************************************
