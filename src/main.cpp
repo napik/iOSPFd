@@ -6,15 +6,15 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <thread>
+#include <thread>
 #include <variant>
 #include <vector>
-#include <thread> 
 
 using namespace std;
 
-int main() { 
-	std::thread thr_send = std::thread(ospf_send);
-	std::thread thr_recv = std::thread(ospf_recv);
-	thr_send.join();
-	thr_recv.join();
+int main() {
+  std::thread thr_send = std::thread(ospf_send);
+  std::thread thr_recv = std::thread(ospf_recv);
+  thr_send.join();
+  thr_recv.join();
 }
