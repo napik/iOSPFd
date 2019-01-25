@@ -33,7 +33,7 @@ using namespace std;
 #define OSPF_PROTOCOL_NUMBER 89
 
 long checksum(unsigned short *data, unsigned int count) {
-  unsigned short     *addr   = data;
+  unsigned short *addr = data;
   /* Compute Internet Checksum for "count" bytes*  beginning at location "addr"
    */
   long sum = 0;
@@ -48,7 +48,7 @@ long checksum(unsigned short *data, unsigned int count) {
 
   /*  Fold 32-bit sum to 16 bits */
   sum = (sum & 0xffff) + (sum >> 16);
-  sum += (sum>>16);
+  sum += (sum >> 16);
 
   return ~sum;
 }
@@ -76,7 +76,7 @@ void ospf_send() {
     bzero(&source_addr, sizeof(struct sockaddr_in));
     source_addr.sin_family = AF_INET;
     source_addr.sin_addr.s_addr = inet_addr("192.168.36.130");
-    //source_addr.sin_addr.s_addr = inet_addr("192.168.33.5");
+    // source_addr.sin_addr.s_addr = inet_addr("192.168.33.5");
 
     if (bind(sockfd, (struct sockaddr *)&source_addr, sizeof(source_addr)) <
         0) {
@@ -114,12 +114,12 @@ void ospf_send() {
 
     //  ospf_data += len_hello;
 
-    int len_o  = len_header + len_hello;
-    ospf_hdr->checksum = checksum((unsigned short*)ospf_data, len_o);
+    int len_o = len_header + len_hello;
+    ospf_hdr->checksum = checksum((unsigned short *)ospf_data, len_o);
     ospf_hdr->plength = htons(len_o);
 
-    result = sendto(sockfd, &ospf_data, len_o, 0,
-                    (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    result = sendto(sockfd, &ospf_data, len_o, 0, (struct sockaddr *)&dest_addr,
+                    sizeof(dest_addr));
     if (result < 0) {
       perror("send packet");
       exit(1);
@@ -154,7 +154,7 @@ void ospf_recv() {
     exit(1);
   }
 
-  result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)); 
+  result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
   if (result < 0) {
     perror("Reusing ADDR failed");
     exit(1);
@@ -163,25 +163,26 @@ void ospf_recv() {
   struct sockaddr_ll sll;
   socklen_t size = sizeof(struct sockaddr_ll);
 
-    // use setsockopt() to request that the kernel join a multicast group
-    //
-    struct ip_mreq mreq;
-    mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_AllSPFRouters);
-    mreq.imr_interface.s_addr = inet_addr("192.168.33.5");
-    result = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq, sizeof(mreq));
-    if (result  < 0) {
-        perror("setsockopt");
-        exit(1);
-    }
-
-/*  bzero(&source_addr, sizeof(struct sockaddr_in));
-  source_addr.sin_family = AF_INET;
-  source_addr.sin_addr.s_addr = inet_addr("192.168.36.129");
-
-  if (bind(sock, (struct sockaddr *)&source_addr, sizeof(source_addr)) < 0) {
-    perror("bind failed");
+  // use setsockopt() to request that the kernel join a multicast group
+  //
+  struct ip_mreq mreq;
+  mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_AllSPFRouters);
+  mreq.imr_interface.s_addr = inet_addr("192.168.33.5");
+  result = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq,
+                      sizeof(mreq));
+  if (result < 0) {
+    perror("setsockopt");
     exit(1);
-  } */
+  }
+
+  /*  bzero(&source_addr, sizeof(struct sockaddr_in));
+    source_addr.sin_family = AF_INET;
+    source_addr.sin_addr.s_addr = inet_addr("192.168.36.129");
+
+    if (bind(sock, (struct sockaddr *)&source_addr, sizeof(source_addr)) < 0) {
+      perror("bind failed");
+      exit(1);
+    } */
 
   char *interface;
   while (true) {
