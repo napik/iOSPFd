@@ -32,7 +32,8 @@ using namespace std;
 #define MULTICAST_AllDRouters "224.0.0.6"
 #define OSPF_PROTOCOL_NUMBER 89
 
-long checksum(unsigned char *addr, unsigned int count) {
+long checksum(unsigned short *data, unsigned int count) {
+  unsigned short     *addr   = data;
   /* Compute Internet Checksum for "count" bytes*  beginning at location "addr"
    */
   long sum = 0;
@@ -46,8 +47,8 @@ long checksum(unsigned char *addr, unsigned int count) {
     sum += *(unsigned char *)addr;
 
   /*  Fold 32-bit sum to 16 bits */
-  while (sum >> 16)
-    sum = (sum & 0xffff) + (sum >> 16);
+  sum = (sum & 0xffff) + (sum >> 16);
+  sum += (sum>>16);
 
   return ~sum;
 }
@@ -58,6 +59,7 @@ void ospf_send() {
 
   int len_hello = sizeof(struct ospf_hello);
   int len_header = sizeof(struct ospf_header);
+  int len_ip = sizeof(struct iphdr);
   struct sockaddr_in source_addr, dest_addr;
 
   while (true) {
@@ -73,7 +75,8 @@ void ospf_send() {
 
     bzero(&source_addr, sizeof(struct sockaddr_in));
     source_addr.sin_family = AF_INET;
-    source_addr.sin_addr.s_addr = inet_addr("192.168.36.129");
+    source_addr.sin_addr.s_addr = inet_addr("192.168.36.130");
+    //source_addr.sin_addr.s_addr = inet_addr("192.168.33.5");
 
     if (bind(sockfd, (struct sockaddr *)&source_addr, sizeof(source_addr)) <
         0) {
@@ -91,7 +94,7 @@ void ospf_send() {
     struct ospf_header *ospf_hdr = (struct ospf_header *)&ospf_data;
     ospf_hdr->version = 2;
     ospf_hdr->type = 1;
-    ospf_hdr->router_id = inet_addr("192.168.36.129");
+    ospf_hdr->router_id = inet_addr("192.168.36.130");
     ospf_hdr->area_id = inet_addr("0.0.0.0");
     ospf_hdr->checksum = 0;
     ospf_hdr->autype = 0;
@@ -111,10 +114,11 @@ void ospf_send() {
 
     //  ospf_data += len_hello;
 
-    ospf_hdr->checksum = checksum(ospf_data, len_hello);
-    ospf_hdr->plength = len_header + len_hello;
+    int len_o  = len_header + len_hello;
+    ospf_hdr->checksum = checksum((unsigned short*)ospf_data, len_o);
+    ospf_hdr->plength = htons(len_o);
 
-    result = sendto(sockfd, &ospf_data, ospf_hdr->plength, 0,
+    result = sendto(sockfd, &ospf_data, len_o, 0,
                     (struct sockaddr *)&dest_addr, sizeof(dest_addr));
     if (result < 0) {
       perror("send packet");
@@ -143,30 +147,49 @@ void ospf_recv() {
     exit(1);
   }
 
-  int on = 1;
-  int result = setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on));
+  int yes = 1;
+  int result = setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &yes, sizeof(yes));
   if (result < 0) {
     perror("socket() recv");
     exit(1);
   }
 
-  bzero(&source_addr, sizeof(struct sockaddr_in));
+  result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)); 
+  if (result < 0) {
+    perror("Reusing ADDR failed");
+    exit(1);
+  }
+
+  struct sockaddr_ll sll;
+  socklen_t size = sizeof(struct sockaddr_ll);
+
+    // use setsockopt() to request that the kernel join a multicast group
+    //
+    struct ip_mreq mreq;
+    mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_AllSPFRouters);
+    mreq.imr_interface.s_addr = inet_addr("192.168.33.5");
+    result = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq, sizeof(mreq));
+    if (result  < 0) {
+        perror("setsockopt");
+        exit(1);
+    }
+
+/*  bzero(&source_addr, sizeof(struct sockaddr_in));
   source_addr.sin_family = AF_INET;
   source_addr.sin_addr.s_addr = inet_addr("192.168.36.129");
 
   if (bind(sock, (struct sockaddr *)&source_addr, sizeof(source_addr)) < 0) {
     perror("bind failed");
     exit(1);
-  }
-  struct sockaddr_ll sll;
-  socklen_t size = sizeof(struct sockaddr_ll);
+  } */
+
   char *interface;
   while (true) {
     // recvfrom is used to read data from a socket
     packet_size =
         recvfrom(sock, buffer, 65536, 0, (struct sockaddr *)&sll, &size);
-    if (packet_size == -1) {
-      printf("Failed to get packets\n");
+    if (packet_size < 0) {
+      perror("Failed to get packets");
       exit(1);
     }
     if_indextoname(sll.sll_ifindex, interface);
@@ -185,5 +208,18 @@ void ospf_recv() {
     printf("Destination Address: %s\n",
            (char *)inet_ntoa(dest_socket_address.sin_addr));
     printf("Identification: %d\n\n", ntohs(ip_packet->id));
+
+    buffer += sizeof(struct iphdr);
+
+    struct ospf_header *ospf_hdr = (struct ospf_header *)buffer;
+    printf("OSPF\n");
+    printf("version: %d\n", ospf_hdr->version);
+    printf("type: %d\n", ospf_hdr->type);
+    struct in_addr tmp_ip_addr;
+    tmp_ip_addr.s_addr = ospf_hdr->router_id;
+    printf("router id: %s\n", inet_ntoa(tmp_ip_addr));
+    struct in_addr ip_addr;
+    tmp_ip_addr.s_addr = ospf_hdr->area_id;
+    printf("area id: %s\n\n", inet_ntoa(tmp_ip_addr));
   }
 }
