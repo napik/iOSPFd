@@ -77,6 +77,11 @@ ospf_send ()
   struct sockaddr_in source_addr, dest_addr;
 
   sockfd = socket (AF_INET, SOCK_RAW, 89);
+      if (sockfd < 0)
+	{
+	  perror ("socket() send");
+	  exit (1);
+	}
 
   struct ifreq ifr;
   char iface[] = "eth0";
@@ -89,27 +94,12 @@ ospf_send ()
   bzero (&source_addr, sizeof (struct sockaddr_in));
   source_addr.sin_family = AF_INET;
   source_addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
-  // source_addr.sin_addr.s_addr = inet_addr("192.168.33.5");
 
   bzero (&dest_addr, sizeof (struct sockaddr_in));
   dest_addr.sin_family = AF_INET;
   dest_addr.sin_addr.s_addr = inet_addr (MULTICAST_AllSPFRouters);
-  // dest_addr.sin_addr.s_addr = inet_addr("192.168.36.2");
 
   int len_o = len_header + len_hello;
-
-  while (true)
-    {
-      u_char ospf_data[8 * 1024];
-
-      // sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-      // sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-      if (sockfd < 0)
-	{
-	  perror ("socket() send");
-	  exit (1);
-	}
-
 
       if (bind
 	  (sockfd, (struct sockaddr *) &source_addr,
@@ -119,7 +109,9 @@ ospf_send ()
 	  exit (1);
 	}
 
-      //  ospf_data = new u_char[64*1024];
+  while (true)
+    {
+      u_char ospf_data[8 * 1024];
 
       struct ospf_header *ospf_hdr = (struct ospf_header *) &ospf_data;
       ospf_hdr->version = 2;
@@ -129,8 +121,6 @@ ospf_send ()
       ospf_hdr->checksum = 0;
       ospf_hdr->autype = 0;
       ospf_hdr->Authentication = 0;
-
-      // ospf_data += len_header;
 
       struct ospf_hello *ospf_hel =
 	(struct ospf_hello *) &ospf_data[len_header];
@@ -142,8 +132,6 @@ ospf_send ()
       ospf_hel->DesignatedRouter = inet_addr ("192.168.36.1");
       ospf_hel->BackupDesignatedRouter = inet_addr ("192.168.36.2");
       ospf_hel->Neighbor = inet_addr ("192.168.36.2");
-
-      //  ospf_data += len_hello;
 
       ospf_hdr->checksum = checksum ((unsigned short *) ospf_data, len_o);
       ospf_hdr->plength = htons (len_o);
@@ -173,8 +161,8 @@ ospf_recv ()
   // Allocate string buffer to hold incoming packet data
   unsigned char *buffer = (unsigned char *) malloc (65536);
   // Open the raw socket
-  int sock = socket (AF_INET, SOCK_RAW, 89);
-  if (sock == -1)
+  int sockfd = socket (AF_INET, SOCK_RAW, 89);
+  if (sockfd == -1)
     {
       // socket creation failed, may be because of non-root privileges
       perror ("Failed to create socket\n");
@@ -182,14 +170,14 @@ ospf_recv ()
     }
 
   int yes = 1;
-  int result = setsockopt (sock, IPPROTO_IP, IP_HDRINCL, &yes, sizeof (yes));
+  int result = setsockopt (sockfd, IPPROTO_IP, IP_HDRINCL, &yes, sizeof (yes));
   if (result < 0)
     {
       perror ("socket() recv");
       exit (1);
     }
 
-  result = setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (yes));
+  result = setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (yes));
   if (result < 0)
     {
       perror ("Reusing ADDR failed");
@@ -200,24 +188,20 @@ ospf_recv ()
   socklen_t size = sizeof (struct sockaddr_ll);
 
   struct ifreq ifr;
-    char iface[] = "eth0";
+  char iface[] = "eth0";
 
-      ifr.ifr_addr.sa_family = AF_INET;
-        strncpy (ifr.ifr_name, iface, IFNAMSIZ - 1);
-	  ioctl (sockfd, SIOCGIFADDR, &ifr);
-	    //printf("%s - %s\n" , iface , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
-	    //
-	    //  bzero (&source_addr, sizeof (struct sockaddr_in));
-	    //    source_addr.sin_family = AF_INET;
-	    //      source_addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
-	    //        // source_addr.sin_addr.s_addr = inet_addr("192.168.33.5");
-
+  ifr.ifr_addr.sa_family = AF_INET;
+  strncpy (ifr.ifr_name, iface, IFNAMSIZ - 1);
+  ioctl (sockfd, SIOCGIFADDR, &ifr);
+  //printf("%s - %s\n" , iface , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
+  //
   // use setsockopt() to request that the kernel join a multicast group
   //
   struct ip_mreq mreq;
   mreq.imr_multiaddr.s_addr = inet_addr (MULTICAST_AllSPFRouters);
-  mreq.imr_interface.s_addr = inet_addr ("192.168.33.5");
-  result = setsockopt (sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &mreq,
+//  mreq.imr_interface.s_addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr; 
+  memcpy(&mreq.imr_interface, &((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr, sizeof(struct in_addr));
+  result = setsockopt (sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &mreq,
 		       sizeof (mreq));
   if (result < 0)
     {
@@ -239,7 +223,7 @@ ospf_recv ()
     {
       // recvfrom is used to read data from a socket
       packet_size =
-	recvfrom (sock, buffer, 65536, 0, (struct sockaddr *) &sll, &size);
+	recvfrom (sockfd, buffer, 65536, 0, (struct sockaddr *) &sll, &size);
       if (packet_size < 0)
 	{
 	  perror ("Failed to get packets");
