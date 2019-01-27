@@ -96,7 +96,7 @@ ospf_send ()
   bzero (&source_addr, sizeof (struct sockaddr_in));
   source_addr.sin_family = AF_INET;
   source_addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
-  router_id =  ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+  router_id = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
 
   bzero (&dest_addr, sizeof (struct sockaddr_in));
   dest_addr.sin_family = AF_INET;
