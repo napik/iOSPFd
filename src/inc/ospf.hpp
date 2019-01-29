@@ -11,7 +11,17 @@
 using namespace std;
 
 void ospf_send();
-void ospf_recv();
+void ospf_recv_dospf();
+void ospf_recv_allospf();
+
+// Non DR/BDR routers send on 224.0.0.6 (this is to DR's)
+// and listen to 224.0.0.5 (other ospf routers)
+#define MULTICAST_AllSPFRouters "224.0.0.5"
+#define MULTICAST_AllDRouters "224.0.0.6"
+#define OSPF_PROTOCOL_NUMBER 89
+#define len_hello  (sizeof (struct ospf_hello))
+#define len_header (sizeof (struct ospf_header))
+#define len_data (len_header + len_hello)
 
 /*
 
