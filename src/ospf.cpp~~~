@@ -283,6 +283,7 @@ void ospf_recv_allospf()
 	struct ospf_lsa_header *lsa_hdr = (struct ospf_lsa_header *)buffer;
 	tmp_ip_addr.s_addr = lsa_hdr->adv_router;
 	printf("lsa_age: %d\n", ntohs(lsa_hdr->lsa_age));
+	printf("ls_type: %d\n", lsa_hdr->ls_type);
 	printf("option: %d\n", lsa_hdr->option);
 	printf("adv_router: %s\n", inet_ntoa(tmp_ip_addr));
 	printf("checksum: %d\n", lsa_hdr->ls_checksum);
@@ -293,51 +294,39 @@ void ospf_recv_allospf()
 
 	switch (lsa_hdr->ls_type) {
 	case OSPF_UNKNOWN_LSA:{
-	    printf("ls_type: %s\n", "UNKNOWN_LSA");
 	    break;
 	  }
 	case OSPF_ROUTER_LSA:{
-	    printf("ls_type: %s\n", "ROUTER_LSA");
 	    break;
 	  }
 	case OSPF_NETWORK_LSA:{
-	    printf("ls_type: %s\n", "NETWORK_LSA");
 	    break;
 	  }
 	case OSPF_SUMMARY_LSA:{
-	    printf("ls_type: %s\n", "SUMMARY_LSA");
 	    break;
 	  }
 	case OSPF_ASBR_SUMMARY_LSA:{
-	    printf("ls_type: %s\n", "ASBR_SUMMARY_LSA");
 	    break;
 	  }
 	case OSPF_AS_EXTERNAL_LSA:{
-	    printf("ls_type: %s\n", "AS_EXTERNAL_LSA");
 	    break;
 	  }
 	case OSPF_GROUP_MEMBER_LSA:{
-	    printf("ls_type: %s\n", "GROUP_MEMBER_LSA");
 	    break;
 	  }
 	case OSPF_AS_NSSA_LSA:{
-	    printf("ls_type: %s\n", "AS_NSSA_LSA");
 	    break;
 	  }
 	case OSPF_EXTERNAL_ATTRIBUTES_LSA:{
-	    printf("ls_type: %s\n", "EXTERNAL_ATTRIBUTES_LSA");
 	    break;
 	  }
 	case OSPF_OPAQUE_LINK_LSA:{
-	    printf("ls_type: %s\n", "OPAQUE_LINK_LSA");
 	    break;
 	  }
 	case OSPF_OPAQUE_AREA_LSA:{
-	    printf("ls_type: %s\n", "OPAQUE_AREA_LSA");
 	    break;
 	  }
 	case OSPF_OPAQUE_AS_LSA:{
-	    printf("ls_type: %s\n", "OPAQUE_AS_LSA");
 	    break;
 	  }
 	}
