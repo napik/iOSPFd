@@ -19,20 +19,20 @@ void ospf_recv_allospf();
 #define MULTICAST_AllSPFRouters "224.0.0.5"
 #define MULTICAST_AllDRouters "224.0.0.6"
 #define OSPF_PROTOCOL_NUMBER 89
-#define len_hello  (sizeof (struct ospf_hello))
-#define len_header (sizeof (struct ospf_header))
+#define len_hello (sizeof(struct ospf_hello))
+#define len_header (sizeof(struct ospf_header))
 #define len_data (len_header + len_hello)
 
 /*
 
 Version		- 2 (1-byte)
-Type		- It specifies the type of OSPF packet. 
-			There are 5 different types of OSPF packets. (1-byte)
-				1- Hello packet
-				2- Database Descriptor packet 
-				3- Link State Request packet
-				4- Link State Update packet
-				5- Link State Acknowledgment packet
+Type		- It specifies the type of OSPF packet.
+                        There are 5 different types of OSPF packets. (1-byte)
+                                1- Hello packet
+                                2- Database Descriptor packet
+                                3- Link State Request packet
+                                4- Link State Update packet
+                                5- Link State Acknowledgment packet
 Packet Length	 - Total length of the OSPF packet(2 - bytes)
 Router ID	 - The Router ID of the advertising router
 Area ID		 - 32 bit Area ID assigned to the interface sending the OSPF
@@ -114,33 +114,35 @@ struct ospf_hello {
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  |                       LS Sequence Number                      |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- |            LS Checksum        |             Length            |  
+ |            LS Checksum        |             Length            |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
 /* OSPF LSA Type definition. */
-#define OSPF_UNKNOWN_LSA	      0
-#define OSPF_ROUTER_LSA               1
-#define OSPF_NETWORK_LSA              2
-#define OSPF_SUMMARY_LSA              3
-#define OSPF_ASBR_SUMMARY_LSA         4
-#define OSPF_AS_EXTERNAL_LSA          5
-#define OSPF_GROUP_MEMBER_LSA	      6  /* Not supported. */
-#define OSPF_AS_NSSA_LSA	              7
-#define OSPF_EXTERNAL_ATTRIBUTES_LSA  8  /* Not supported. */
-#define OSPF_OPAQUE_LINK_LSA	      9
-#define OSPF_OPAQUE_AREA_LSA	     10
-#define OSPF_OPAQUE_AS_LSA	     11
+#define OSPF_UNKNOWN_LSA 0
+#define OSPF_ROUTER_LSA 1
+#define OSPF_NETWORK_LSA 2
+#define OSPF_SUMMARY_LSA 3
+#define OSPF_ASBR_SUMMARY_LSA 4
+#define OSPF_AS_EXTERNAL_LSA 5
+#define OSPF_GROUP_MEMBER_LSA 6 /* Not supported. */
+#define OSPF_AS_NSSA_LSA 7
+#define OSPF_EXTERNAL_ATTRIBUTES_LSA 8 /* Not supported. */
+#define OSPF_OPAQUE_LINK_LSA 9
+#define OSPF_OPAQUE_AREA_LSA 10
+#define OSPF_OPAQUE_AS_LSA 11
 
-#define OSPF_LSA_HEADER_SIZE	     20U
-#define OSPF_ROUTER_LSA_LINK_SIZE    12U
-#define OSPF_MAX_LSA_SIZE	   1500U
+#define OSPF_LSA_HEADER_SIZE 20U
+#define OSPF_ROUTER_LSA_LINK_SIZE 12U
+#define OSPF_MAX_LSA_SIZE 1500U
 
 struct ospf_lsa_header {
   uint16_t lsa_age;
-  uint8_t  option;
-  uint8_t  ls_type;
-  uint32_t link_state_id;
-  uint32_t adv_router;
+  uint8_t option;
+  uint8_t ls_type;
+  // uint32_t link_state_id;
+  struct in_addr link_state_id;
+  // uint32_t adv_router;
+  struct in_addr adv_router;
   uint32_t ls_sequence_numer;
   uint16_t ls_checksum;
   uint16_t lengnt;
@@ -213,31 +215,29 @@ Link Data
 */
 
 /* OSPF LSA Link Type. */
-#define LSA_LINK_TYPE_POINTOPOINT      1
-#define LSA_LINK_TYPE_TRANSIT          2
-#define LSA_LINK_TYPE_STUB             3
-#define LSA_LINK_TYPE_VIRTUALLINK      4
+#define LSA_LINK_TYPE_POINTOPOINT 1
+#define LSA_LINK_TYPE_TRANSIT 2
+#define LSA_LINK_TYPE_STUB 3
+#define LSA_LINK_TYPE_VIRTUALLINK 4
 
 /* OSPF Router LSA Flag. */
-#define ROUTER_LSA_BORDER	       0x01 /* The router is an ABR */
-#define ROUTER_LSA_EXTERNAL	       0x02 /* The router is an ASBR */
-#define ROUTER_LSA_VIRTUAL	       0x04 /* The router has a VL in this area */
-#define ROUTER_LSA_NT		       0x10 /* The routers always translates Type-7 */
-#define ROUTER_LSA_SHORTCUT	       0x20 /* Shortcut-ABR specific flag */
+#define ROUTER_LSA_BORDER 0x01   /* The router is an ABR */
+#define ROUTER_LSA_EXTERNAL 0x02 /* The router is an ASBR */
+#define ROUTER_LSA_VIRTUAL 0x04  /* The router has a VL in this area */
+#define ROUTER_LSA_NT 0x10       /* The routers always translates Type-7 */
+#define ROUTER_LSA_SHORTCUT 0x20 /* Shortcut-ABR specific flag */
 
-#define IS_ROUTER_LSA_VIRTUAL(x)       ((x)->flags & ROUTER_LSA_VIRTUAL)
-#define IS_ROUTER_LSA_EXTERNAL(x)      ((x)->flags & ROUTER_LSA_EXTERNAL)
-#define IS_ROUTER_LSA_BORDER(x)	       ((x)->flags & ROUTER_LSA_BORDER)
-#define IS_ROUTER_LSA_SHORTCUT(x)      ((x)->flags & ROUTER_LSA_SHORTCUT)
-#define IS_ROUTER_LSA_NT(x)            ((x)->flags & ROUTER_LSA_NT)
+#define IS_ROUTER_LSA_VIRTUAL(x) ((x)->flags & ROUTER_LSA_VIRTUAL)
+#define IS_ROUTER_LSA_EXTERNAL(x) ((x)->flags & ROUTER_LSA_EXTERNAL)
+#define IS_ROUTER_LSA_BORDER(x) ((x)->flags & ROUTER_LSA_BORDER)
+#define IS_ROUTER_LSA_SHORTCUT(x) ((x)->flags & ROUTER_LSA_SHORTCUT)
+#define IS_ROUTER_LSA_NT(x) ((x)->flags & ROUTER_LSA_NT)
 
 /* OSPF Router-LSA Link information. */
-struct router_lsa_link
-{
+struct router_lsa_link {
   struct in_addr link_id;
   struct in_addr link_data;
-  struct
-  {
+  struct {
     u_char type;
     u_char tos_count;
     u_int16_t metric;
@@ -245,14 +245,12 @@ struct router_lsa_link
 };
 
 /* OSPF Router-LSAs structure. */
-struct router_lsa
-{
+struct router_lsa {
   struct ospf_lsa_header header;
   u_char flags;
   u_char zero;
   u_int16_t links;
-  struct
-  {
+  struct {
     struct in_addr link_id;
     struct in_addr link_data;
     u_char type;
@@ -262,16 +260,14 @@ struct router_lsa
 };
 
 /* OSPF Network-LSAs structure. */
-struct network_lsa
-{
+struct network_lsa {
   struct ospf_lsa_header header;
   struct in_addr mask;
   struct in_addr routers[1];
 };
 
 /* OSPF Summary-LSAs structure. */
-struct summary_lsa
-{
+struct summary_lsa {
   struct ospf_lsa_header header;
   struct in_addr mask;
   u_char tos;
@@ -279,12 +275,10 @@ struct summary_lsa
 };
 
 /* OSPF AS-external-LSAs structure. */
-struct as_external_lsa
-{
+struct as_external_lsa {
   struct ospf_lsa_header header;
   struct in_addr mask;
-  struct
-  {
+  struct {
     u_char tos;
     u_char metric[3];
     struct in_addr fwd_addr;
@@ -308,7 +302,6 @@ struct ospf_lsa_identification {
   uint32_t adv_router;
 };
 
-
 struct ospf_lsa_update {
   uint32_t number;
 };
@@ -331,6 +324,6 @@ struct ospf_dd {
   struct ospf_dd_header header;
   /*
    * An LSA Header
-  */
+   */
   u_char *LSA_header;
 };
