@@ -224,7 +224,6 @@ void ospf_recv_allospf() {
       exit(1);
     }
 
-<<<<<<< HEAD
     struct ip *ip_packet = (struct ip *)buffer;
     buffer += sizeof(struct ip);
 
@@ -232,15 +231,6 @@ void ospf_recv_allospf() {
     src_addr.sin_addr = ip_packet->ip_src;
     memset(&dst_addr, 0, sizeof(dst_addr));
     dst_addr.sin_addr = ip_packet->ip_dst;
-=======
-    struct iphdr *ip_packet = (struct iphdr *)buffer;
-    buffer += sizeof(struct iphdr);
-
-    memset(&src_addr, 0, sizeof(src_addr));
-    src_addr.sin_addr.s_addr = ip_packet->saddr;
-    memset(&dst_addr, 0, sizeof(dst_addr));
-    dst_addr.sin_addr.s_addr = ip_packet->daddr;
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
 
     pthread_mutex_lock(&lock);
     /*    if ((((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr).s_addr ==
@@ -249,7 +239,6 @@ void ospf_recv_allospf() {
     printf("\n\n\n\x1B[31mIncoming Packet (%s):\033[0m \n",
            (char *)inet_ntoa(sll.sin_addr));
 
-<<<<<<< HEAD
     printf("Packet Size (bytes): %d\n", ntohs(ip_packet->ip_len));
     printf("Source Address: %s\n", (char *)inet_ntoa(src_addr.sin_addr));
     printf("Destination Address: %s\n", (char *)inet_ntoa(dst_addr.sin_addr));
@@ -268,26 +257,7 @@ void ospf_recv_allospf() {
        * 3- Link State Request packet
        * 4- Link State Update packet
        * 5- Link State Acknowledgment packet
-=======
-    printf("Packet Size (bytes): %d\n", ntohs(ip_packet->tot_len));
-    printf("Source Address: %s\n", (char *)inet_ntoa(src_addr.sin_addr));
-    printf("Destination Address: %s\n", (char *)inet_ntoa(dst_addr.sin_addr));
-    printf("Identification: %d\n\n", ntohs(ip_packet->id));
-
-    struct ospf_header *ospf_hdr = (struct ospf_header *)buffer;
-    buffer += sizeof(struct ospf_header);
-
-    tmp_ip_addr.s_addr = ospf_hdr->router_id;
-    printf("router id: %s\n", inet_ntoa(tmp_ip_addr));
-    tmp_ip_addr.s_addr = ospf_hdr->area_id;
-    printf("area id: %s\n\n", inet_ntoa(tmp_ip_addr));
-
-    printf("OSPF V%d ", ospf_hdr->version);
-    switch (ospf_hdr->type) {
-      /*         2- Database Descriptor packet 3- Link State Request packet 4-
-       * Link State Update packet 5- Link State Acknowledgment packet
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
-       */
+      */
     case 1: {
       printf("HELLO\n");
       break;
@@ -336,7 +306,6 @@ void ospf_recv_allospf() {
         buffer += ntohs(lsa_hdr->lengnt);
       }
       break;
-<<<<<<< HEAD
     }
     case 5: {
       printf("LSA\n");
@@ -403,74 +372,6 @@ void ospf_recv_allospf() {
       break;
     }
     }
-=======
-    }
-    case 5: {
-      printf("LSA\n");
-
-      struct ospf_lsa_header *lsa_hdr = (struct ospf_lsa_header *)buffer;
-      printf("lsa_age: %d\n", ntohs(lsa_hdr->lsa_age));
-      printf("option: %d\n", lsa_hdr->option);
-      printf("adv_router: %s\n", inet_ntoa(lsa_hdr->adv_router));
-      printf("checksum: %d\n", lsa_hdr->ls_checksum);
-      printf("link_state_id: %s\n", inet_ntoa(lsa_hdr->link_state_id));
-      printf("ls_sequence_numer: %d\n", ntohs(lsa_hdr->ls_sequence_numer));
-      printf("lenght: %d\n", ntohs(lsa_hdr->lengnt));
-
-      switch (lsa_hdr->ls_type) {
-      case OSPF_UNKNOWN_LSA: {
-        printf("ls_type: %s\n", "UNKNOWN_LSA");
-        break;
-      }
-      case OSPF_ROUTER_LSA: {
-        printf("ls_type: %s\n", "ROUTER_LSA");
-        break;
-      }
-      case OSPF_NETWORK_LSA: {
-        printf("ls_type: %s\n", "NETWORK_LSA");
-        break;
-      }
-      case OSPF_SUMMARY_LSA: {
-        printf("ls_type: %s\n", "SUMMARY_LSA");
-        break;
-      }
-      case OSPF_ASBR_SUMMARY_LSA: {
-        printf("ls_type: %s\n", "ASBR_SUMMARY_LSA");
-        break;
-      }
-      case OSPF_AS_EXTERNAL_LSA: {
-        printf("ls_type: %s\n", "AS_EXTERNAL_LSA");
-        break;
-      }
-      case OSPF_GROUP_MEMBER_LSA: {
-        printf("ls_type: %s\n", "GROUP_MEMBER_LSA");
-        break;
-      }
-      case OSPF_AS_NSSA_LSA: {
-        printf("ls_type: %s\n", "AS_NSSA_LSA");
-        break;
-      }
-      case OSPF_EXTERNAL_ATTRIBUTES_LSA: {
-        printf("ls_type: %s\n", "EXTERNAL_ATTRIBUTES_LSA");
-        break;
-      }
-      case OSPF_OPAQUE_LINK_LSA: {
-        printf("ls_type: %s\n", "OPAQUE_LINK_LSA");
-        break;
-      }
-      case OSPF_OPAQUE_AREA_LSA: {
-        printf("ls_type: %s\n", "OPAQUE_AREA_LSA");
-        break;
-      }
-      case OSPF_OPAQUE_AS_LSA: {
-        printf("ls_type: %s\n", "OPAQUE_AS_LSA");
-        break;
-      }
-      }
-      break;
-    }
-    }
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
 
     /*    } else {
           printf("\nignoring self packet\n");
@@ -485,23 +386,18 @@ void ospf_recv_dospf() {
   struct sockaddr_in sll;
   struct ifreq ifr;
   char iface[] = "eth0";
-<<<<<<< HEAD
   ssize_t packet_size;
-=======
-  int packet_size;
-  int yes = 1;
-  int result;
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
   int sockfd;
   unsigned char *buffer;
 
   buffer = (unsigned char *)malloc(65536);
-<<<<<<< HEAD
     
   ifr.ifr_addr.sa_family = AF_INET;
   strncpy(ifr.ifr_name, iface, IFNAMSIZ - 1);
     
 #ifdef __linux__
+  int yes = 1;
+  int result;
     sockfd = socket(AF_INET, SOCK_RAW, 89);
     if (sockfd == -1) {
         perror("Failed to create socket\n");
@@ -537,38 +433,6 @@ void ospf_recv_dospf() {
     ioctl(sockfd, BIOCPROMISC, NULL);
 #endif
     
-
-=======
-
-  sockfd = socket(AF_INET, SOCK_RAW, 89);
-  if (sockfd == -1) {
-    perror("Failed to create socket\n");
-    exit(1);
-  }
-
-  result = setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &yes, sizeof(yes));
-  if (result < 0) {
-    perror("setsockopt() IPPROTO_IP, IP_HDRINCL");
-    exit(1);
-  }
-
-  result = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-  if (result < 0) {
-    perror("setsockopt() SOL_SOCKET, SO_REUSEADDR");
-    exit(1);
-  }
-
-  ifr.ifr_addr.sa_family = AF_INET;
-  strncpy(ifr.ifr_name, iface, IFNAMSIZ - 1);
-  ioctl(sockfd, SIOCGIFADDR, &ifr);
-
-  if (bind(sockfd, (struct sockaddr *)&ifr.ifr_addr,
-           sizeof(struct sockaddr_in)) < 0) {
-    perror("bind failed");
-    exit(1);
-  }
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
-
   socklen_t size = sizeof(sll);
   while (true) {
     memset(buffer, 0, 65536);
@@ -579,21 +443,12 @@ void ospf_recv_dospf() {
       exit(1);
     }
 
-<<<<<<< HEAD
     struct ip *ip_packet = (struct ip *)buffer;
 
     memset(&src_addr, 0, sizeof(src_addr));
     src_addr.sin_addr = ip_packet->ip_src;
     memset(&dst_addr, 0, sizeof(dst_addr));
     dst_addr.sin_addr = ip_packet->ip_dst;
-=======
-    struct iphdr *ip_packet = (struct iphdr *)buffer;
-
-    memset(&src_addr, 0, sizeof(src_addr));
-    src_addr.sin_addr.s_addr = ip_packet->saddr;
-    memset(&dst_addr, 0, sizeof(dst_addr));
-    dst_addr.sin_addr.s_addr = ip_packet->daddr;
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
 
     pthread_mutex_lock(&lock);
     /*    if (src_addr.sin_addr.s_addr == (((struct sockaddr_in *)
@@ -601,21 +456,12 @@ void ospf_recv_dospf() {
                                          ->sin_addr).s_addr) {
     */
     printf("Incoming Packet (%s): \n", (char *)inet_ntoa(sll.sin_addr));
-<<<<<<< HEAD
     printf("Packet Size (bytes): %d\n", ntohs(ip_packet->ip_len));
     printf("Source Address: %s\n", (char *)inet_ntoa(src_addr.sin_addr));
     printf("Destination Address: %s\n", (char *)inet_ntoa(dst_addr.sin_addr));
     printf("Identification: %d\n\n", ntohs(ip_packet->ip_id));
 
     buffer += sizeof(struct ip);
-=======
-    printf("Packet Size (bytes): %d\n", ntohs(ip_packet->tot_len));
-    printf("Source Address: %s\n", (char *)inet_ntoa(src_addr.sin_addr));
-    printf("Destination Address: %s\n", (char *)inet_ntoa(dst_addr.sin_addr));
-    printf("Identification: %d\n\n", ntohs(ip_packet->id));
-
-    buffer += sizeof(struct iphdr);
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
 
     struct ospf_header *ospf_hdr = (struct ospf_header *)buffer;
     printf("OSPF V%d ", ospf_hdr->version);
@@ -625,15 +471,8 @@ void ospf_recv_dospf() {
       break;
     }
 
-<<<<<<< HEAD
     printf("router id: %s\n", inet_ntoa(ospf_hdr->router_id));
     printf("area id: %s\n\n", inet_ntoa(ospf_hdr->area_id));
-=======
-    tmp_ip_addr.s_addr = ospf_hdr->router_id;
-    printf("router id: %s\n", inet_ntoa(tmp_ip_addr));
-    tmp_ip_addr.s_addr = ospf_hdr->area_id;
-    printf("area id: %s\n\n", inet_ntoa(tmp_ip_addr));
->>>>>>> b9be4def0e452c334875a7b6b24f1f7a955cce3f
     /*    } else {
           printf("ignoring self packet\n");
         }
