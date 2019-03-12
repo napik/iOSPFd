@@ -16,9 +16,8 @@
 #include <unistd.h>
 #include <variant>
 #include <vector>
+#include <cstring>
 
-//#include <cstring>
-/
 #include "inc/ospf.hpp"
 
 
