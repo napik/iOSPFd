@@ -1,0 +1,81 @@
+The system is: Linux - 4.19.104-microsoft-standard - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/3.16.3/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /usr/bin/c++ 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/3.16.3/CompilerIdCXX/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e056b/fast && make: Warning: File 'Makefile' has modification time 0.47 s in the future
+/usr/bin/make -f CMakeFiles/cmTC_e056b.dir/build.make CMakeFiles/cmTC_e056b.dir/build
+make[1]: Entering directory '/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp'
+make[1]: Warning: File 'CMakeFiles/cmTC_e056b.dir/flags.make' has modification time 0.45 s in the future
+Building C object CMakeFiles/cmTC_e056b.dir/testCCompiler.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_e056b.dir/testCCompiler.c.o   -c /mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_e056b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e056b.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_e056b.dir/testCCompiler.c.o  -o cmTC_e056b 
+make[1]: warning:  Clock skew detected.  Your build may be incomplete.
+make[1]: Leaving directory '/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp'
+make: warning:  Clock skew detected.  Your build may be incomplete.
+
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_83f76/fast && make: Warning: File 'Makefile' has modification time 0.48 s in the future
+/usr/bin/make -f CMakeFiles/cmTC_83f76.dir/build.make CMakeFiles/cmTC_83f76.dir/build
+make[1]: Entering directory '/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp'
+make[1]: Warning: File 'CMakeFiles/cmTC_83f76.dir/flags.make' has modification time 0.46 s in the future
+Building CXX object CMakeFiles/cmTC_83f76.dir/testCXXCompiler.cxx.o
+/usr/bin/c++     -o CMakeFiles/cmTC_83f76.dir/testCXXCompiler.cxx.o -c /mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_83f76
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_83f76.dir/link.txt --verbose=1
+/usr/bin/c++       CMakeFiles/cmTC_83f76.dir/testCXXCompiler.cxx.o  -o cmTC_83f76 
+make[1]: warning:  Clock skew detected.  Your build may be incomplete.
+make[1]: Leaving directory '/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp'
+make: warning:  Clock skew detected.  Your build may be incomplete.
+
+
+
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_e1f81/fast && make: Warning: File 'Makefile' has modification time 0.41 s in the future
+/usr/bin/make -f CMakeFiles/cmTC_e1f81.dir/build.make CMakeFiles/cmTC_e1f81.dir/build
+make[1]: Entering directory '/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp'
+make[1]: Warning: File 'CMakeFiles/cmTC_e1f81.dir/flags.make' has modification time 0.36 s in the future
+Building C object CMakeFiles/cmTC_e1f81.dir/CheckIncludeFile.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_e1f81.dir/CheckIncludeFile.c.o   -c /mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_e1f81
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e1f81.dir/link.txt --verbose=1
+/usr/bin/cc      CMakeFiles/cmTC_e1f81.dir/CheckIncludeFile.c.o  -o cmTC_e1f81 
+make[1]: warning:  Clock skew detected.  Your build may be incomplete.
+make[1]: Leaving directory '/mnt/c/Users/napik-PC/CLionProjects/iospfd/cmake-build-debug/CMakeFiles/CMakeTmp'
+make: warning:  Clock skew detected.  Your build may be incomplete.
+
+
+

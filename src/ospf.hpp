@@ -11,11 +11,12 @@
 using namespace std;
 
 void ospf_send();
+
 void ospf_recv_dospf();
+
 void ospf_recv_allospf();
 
-// Non DR/BDR routers send on 224.0.0.6 (this is to DR's)
-// and listen to 224.0.0.5 (other ospf routers)
+// Non DR/BDR routers send on 224.0.0.6 (this is to DR's) and listen to 224.0.0.5 (other ospf routers)
 #define MULTICAST_AllSPFRouters "224.0.0.5"
 #define MULTICAST_AllDRouters "224.0.0.6"
 #define OSPF_PROTOCOL_NUMBER 89
@@ -24,23 +25,23 @@ void ospf_recv_allospf();
 #define len_data (len_header + len_hello)
 
 /*
+Version (1-byte)	- 2
+Type    (1-byte)    - It specifies the type of OSPF packet. There are 5 different types of OSPF packets.
+    1- Hello packet
+    2- Database Descriptor packet
+    3- Link State Request packet
+    4- Link State Update packet
+    5- Link State Acknowledgment packet
 
-Version		- 2 (1-byte)
-Type		- It specifies the type of OSPF packet.
-                        There are 5 different types of OSPF packets. (1-byte)
-                                1- Hello packet
-                                2- Database Descriptor packet
-                                3- Link State Request packet
-                                4- Link State Update packet
-                                5- Link State Acknowledgment packet
-Packet Length	 - Total length of the OSPF packet(2 - bytes)
-Router ID	 - The Router ID of the advertising router
-Area ID		 - 32 bit Area ID assigned to the interface sending the OSPF
-packet(4 - bytes) Checksum	 - Standard IP Checksum of OSPF packet excluding
-Authentication field(2 - bytes) AuType		 - Authentication Type(2 -
-bytes) 0 - No Password 1 - Plain - text password 2 - MD5 authentication
-Authentication	 -  Authentication data to verify the packet's integrity
-(8-bytes)
+Packet Length   (2-bytes)                   - Total length of the OSPF packet
+Router ID                                   - The Router ID of the advertising router
+Area ID             	                    - 32 bit Area ID assigned to the interface sending the OSPF
+Checksum        (4-bytes)                   - Standard IP Checksum of OSPF packet excluding
+Authentication field AuType (2-bytes)       - Authentication Type
+        0 - No Password
+        1 - Plain - text password
+        2 - MD5 authentication
+Authentication (8-bytes)                   	- Authentication data to verify the packet's integrity
 */
 
 /*****************************************************************
@@ -61,15 +62,25 @@ Authentication	 -  Authentication data to verify the packet's integrity
  |                       Authentication                          |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
+/*
+ * 1- Hello
+ * 2- Database Descriptor packet
+ * 3- Link State Request packet
+ * 4- Link State Update packet
+ * 5- Link State Acknowledgment packet
+ */
+enum class ospf_header_type : uint8_t {
+    HELLO = 1, DD = 2, LSR = 3, LSU = 4, LSA = 5
+};
 struct ospf_header {
-  uint8_t version;
-  uint8_t type;
-  uint16_t plength;
-  struct in_addr router_id;
-  struct in_addr area_id;
-  uint16_t checksum;
-  uint16_t autype;
-  uint64_t Authentication;
+    uint8_t version;
+    ospf_header_type type;
+    uint16_t plength;
+    struct in_addr router_id;
+    struct in_addr area_id;
+    uint16_t checksum;
+    uint16_t autype;
+    uint64_t Authentication;
 };
 
 /*****************************************************************
@@ -91,14 +102,14 @@ struct ospf_header {
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
 struct ospf_hello {
-  uint32_t NetworkMask;
-  uint16_t HelloInterval;
-  uint8_t option;
-  uint8_t rtlpri;
-  uint32_t RouterDeadInterval;
-  struct in_addr  DesignatedRouter;
-  struct in_addr  BackupDesignatedRouter;
-  struct in_addr  Neighbor;
+    uint32_t NetworkMask;
+    uint16_t HelloInterval;
+    uint8_t option;
+    uint8_t rtlpri;
+    uint32_t RouterDeadInterval;
+    struct in_addr DesignatedRouter;
+    struct in_addr BackupDesignatedRouter;
+    struct in_addr Neighbor;
 };
 
 /*****************************************************************
@@ -118,34 +129,36 @@ struct ospf_hello {
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
 /* OSPF LSA Type definition. */
-#define OSPF_UNKNOWN_LSA 0
-#define OSPF_ROUTER_LSA 1
-#define OSPF_NETWORK_LSA 2
-#define OSPF_SUMMARY_LSA 3
-#define OSPF_ASBR_SUMMARY_LSA 4
-#define OSPF_AS_EXTERNAL_LSA 5
-#define OSPF_GROUP_MEMBER_LSA 6 /* Not supported. */
-#define OSPF_AS_NSSA_LSA 7
-#define OSPF_EXTERNAL_ATTRIBUTES_LSA 8 /* Not supported. */
-#define OSPF_OPAQUE_LINK_LSA 9
-#define OSPF_OPAQUE_AREA_LSA 10
-#define OSPF_OPAQUE_AS_LSA 11
+enum class ospf_lsa_header_ls_type : uint8_t {
+    OSPF_UNKNOWN_LSA = 0,
+    OSPF_ROUTER_LSA = 1,
+    OSPF_NETWORK_LSA = 2,
+    OSPF_SUMMARY_LSA = 3,
+    OSPF_ASBR_SUMMARY_LSA = 4,
+    OSPF_AS_EXTERNAL_LSA = 5,
+    OSPF_GROUP_MEMBER_LSA = 6, /* Not supported. */
+    OSPF_AS_NSSA_LSA = 7,
+    OSPF_EXTERNAL_ATTRIBUTES_LSA = 8, /* Not supported. */
+    OSPF_OPAQUE_LINK_LSA = 9,
+    OSPF_OPAQUE_AREA_LSA = 10,
+    OSPF_OPAQUE_AS_LSA = 11,
+};
 
 #define OSPF_LSA_HEADER_SIZE 20U
 #define OSPF_ROUTER_LSA_LINK_SIZE 12U
 #define OSPF_MAX_LSA_SIZE 1500U
 
 struct ospf_lsa_header {
-  uint16_t lsa_age;
-  uint8_t option;
-  uint8_t ls_type;
-  // uint32_t link_state_id;
-  struct in_addr link_state_id;
-  // uint32_t adv_router;
-  struct in_addr adv_router;
-  uint32_t ls_sequence_numer;
-  uint16_t ls_checksum;
-  uint16_t lengnt;
+    uint16_t lsa_age;
+    uint8_t option;
+    ospf_lsa_header_ls_type ls_type;
+    // uint32_t link_state_id;
+    struct in_addr link_state_id;
+    // uint32_t adv_router;
+    struct in_addr adv_router;
+    uint32_t ls_sequence_numer;
+    uint16_t ls_checksum;
+    uint16_t lengnt;
 };
 
 /*
@@ -235,55 +248,55 @@ Link Data
 
 /* OSPF Router-LSA Link information. */
 struct router_lsa_link {
-  struct in_addr link_id;
-  struct in_addr link_data;
-  struct {
-    u_char type;
-    u_char tos_count;
-    u_int16_t metric;
-  } m[1];
+    struct in_addr link_id;
+    struct in_addr link_data;
+    struct {
+        u_char type;
+        u_char tos_count;
+        u_int16_t metric;
+    } m[1];
 };
 
 /* OSPF Router-LSAs structure. */
 struct router_lsa {
-  struct ospf_lsa_header header;
-  u_char flags;
-  u_char zero;
-  u_int16_t links;
-  struct {
-    struct in_addr link_id;
-    struct in_addr link_data;
-    u_char type;
-    u_char tos;
-    u_int16_t metric;
-  } link[1];
+    struct ospf_lsa_header header;
+    u_char flags;
+    u_char zero;
+    u_int16_t links;
+    struct {
+        struct in_addr link_id;
+        struct in_addr link_data;
+        u_char type;
+        u_char tos;
+        u_int16_t metric;
+    } link[1];
 };
 
 /* OSPF Network-LSAs structure. */
 struct network_lsa {
-  struct ospf_lsa_header header;
-  struct in_addr mask;
-  struct in_addr routers[1];
+    struct ospf_lsa_header header;
+    struct in_addr mask;
+    struct in_addr routers[1];
 };
 
 /* OSPF Summary-LSAs structure. */
 struct summary_lsa {
-  struct ospf_lsa_header header;
-  struct in_addr mask;
-  u_char tos;
-  u_char metric[3];
+    struct ospf_lsa_header header;
+    struct in_addr mask;
+    u_char tos;
+    u_char metric[3];
 };
 
 /* OSPF AS-external-LSAs structure. */
 struct as_external_lsa {
-  struct ospf_lsa_header header;
-  struct in_addr mask;
-  struct {
-    u_char tos;
-    u_char metric[3];
-    struct in_addr fwd_addr;
-    u_int32_t route_tag;
-  } e[1];
+    struct ospf_lsa_header header;
+    struct in_addr mask;
+    struct {
+        u_char tos;
+        u_char metric[3];
+        struct in_addr fwd_addr;
+        u_int32_t route_tag;
+    } e[1];
 };
 
 /*****************************************************************
@@ -297,33 +310,33 @@ struct as_external_lsa {
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
 struct ospf_lsa_identification {
-  uint32_t ls_type;
-  uint32_t link_state_id;
-  uint32_t adv_router;
+    uint32_t ls_type;
+    uint32_t link_state_id;
+    uint32_t adv_router;
 };
 
 struct ospf_lsa_update {
-  uint32_t number;
+    uint32_t number;
 };
 
 struct ospf_dd_header {
-  uint16_t version;
-  uint8_t options;
-  u_char u1;
-  u_char u2;
-  u_char u3;
-  u_char u4;
-  u_char u5;
-  u_char I;
-  u_char M;
-  u_char MS;
-  uint32_t dd_sequence_number;
+    uint16_t version;
+    uint8_t options;
+    u_char u1;
+    u_char u2;
+    u_char u3;
+    u_char u4;
+    u_char u5;
+    u_char I;
+    u_char M;
+    u_char MS;
+    uint32_t dd_sequence_number;
 };
 
 struct ospf_dd {
-  struct ospf_dd_header header;
-  /*
-   * An LSA Header
-   */
-  u_char *LSA_header;
+    struct ospf_dd_header header;
+    /*
+     * An LSA Header
+     */
+    u_char *LSA_header;
 };
