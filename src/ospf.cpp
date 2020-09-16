@@ -1,28 +1,38 @@
-#include "inc/ospf.hpp"
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <strings.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <net/ethernet.h>
+#include <net/if.h>
+
 #include <thread>
+#include <strings.h>
 #include <unistd.h>
 #include <variant>
 #include <vector>
+#include <cstring>
+
+#include "inc/ospf.hpp"
+
 
 #ifdef _WIN32
-//define something for Windows (32-bit and 64-bit, this part is common)
+// define something for Windows (32-bit and 64-bit, this part is common)
 #ifdef _WIN64
-//define something for Windows (64-bit only)
+// define something for Windows (64-bit only)
 #else
-//define something for Windows (32-bit only)
+// define something for Windows (32-bit only)
 #endif
 #elif __APPLE__
 #include "TargetConditionals.h"
-#include <netinet/if_ether.h>
-#include <net/bpf.h>
 #include <fcntl.h>
+#include <net/bpf.h>
+#include <netinet/if_ether.h>
 
 #if TARGET_IPHONE_SIMULATOR
 // iOS Simulator
@@ -31,7 +41,7 @@
 #elif TARGET_OS_MAC
 // Other kinds of Mac OS
 #else
-#   error "Unknown Apple platform"
+#error "Unknown Apple platform"
 #endif
 #elif __linux__
 // linux
@@ -41,25 +51,9 @@
 #elif defined(_POSIX_VERSION)
 // POSIX
 #else
-#   error "Unknown compiler"
+#error "Unknown compiler"
 #endif
 
-#include <net/ethernet.h>
-#include <sys/socket.h>
-
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
-
-#include <cstring>
-#include <thread>
-
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 
 using namespace std;
 
@@ -114,10 +108,11 @@ void ospf_send() {
   dest_addr.sin_family = AF_INET;
   dest_addr.sin_addr.s_addr = inet_addr(MULTICAST_AllSPFRouters);
 
-//  if (bind(sockfd, (struct sockaddr *)&source_addr, sizeof(source_addr)) < 0) {
-//    perror("bind failed");
-//    exit(1);
-//  }
+  //  if (bind(sockfd, (struct sockaddr *)&source_addr, sizeof(source_addr)) <
+  //  0) {
+  //    perror("bind failed");
+  //    exit(1);
+  //  }
 
   while (true) {
     u_char ospf_data[8 * 1024];
@@ -246,7 +241,7 @@ void ospf_recv_allospf() {
 
     struct ospf_header *ospf_hdr = (struct ospf_header *)buffer;
     buffer += sizeof(struct ospf_header);
-      
+
     printf("router id: %s\n", inet_ntoa(ospf_hdr->router_id));
     printf("area id: %s\n\n", inet_ntoa(ospf_hdr->area_id));
 
@@ -391,47 +386,48 @@ void ospf_recv_dospf() {
   unsigned char *buffer;
 
   buffer = (unsigned char *)malloc(65536);
-    
+
   ifr.ifr_addr.sa_family = AF_INET;
   strncpy(ifr.ifr_name, iface, IFNAMSIZ - 1);
-    
-#ifdef __linux__
-    sockfd = socket(AF_INET, SOCK_RAW, 89);
-    if (sockfd == -1) {
-        perror("Failed to create socket\n");
-        exit(1);
-    }
-    
-    result = setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &yes, sizeof(yes));
-    if (result < 0) {
-        perror("setsockopt() IPPROTO_IP, IP_HDRINCL");
-        exit(1);
-    }
-    
-    result = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-    if (result < 0) {
-        perror("setsockopt() SOL_SOCKET, SO_REUSEADDR");
-        exit(1);
-    }
-    
-    ioctl(sockfd, SIOCGIFADDR, &ifr);
-    
-    if (bind(sockfd, (struct sockaddr *)&ifr.ifr_addr, sizeof(struct sockaddr_in)) < 0) {
-        perror("bind failed");
-        exit(1);
-    }
-#elif __APPLE__
-    sockfd = open("/dev/bpf0", O_RDWR);
-    
-    ioctl(sockfd, BIOCSBLEN, 65536);
-    ioctl(sockfd, BIOCGBLEN, 65536);
-    
-    ioctl(sockfd, BIOCSETIF, &ifr);
-    
-    ioctl(sockfd, BIOCPROMISC, NULL);
-#endif
-    
 
+#ifdef __linux__
+  int yes = 1;
+  int result;
+  sockfd = socket(AF_INET, SOCK_RAW, 89);
+  if (sockfd == -1) {
+    perror("Failed to create socket\n");
+    exit(1);
+  }
+
+  result = setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &yes, sizeof(yes));
+  if (result < 0) {
+    perror("setsockopt() IPPROTO_IP, IP_HDRINCL");
+    exit(1);
+  }
+
+  result = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+  if (result < 0) {
+    perror("setsockopt() SOL_SOCKET, SO_REUSEADDR");
+    exit(1);
+  }
+
+  ioctl(sockfd, SIOCGIFADDR, &ifr);
+
+  if (bind(sockfd, (struct sockaddr *)&ifr.ifr_addr,
+           sizeof(struct sockaddr_in)) < 0) {
+    perror("bind failed");
+    exit(1);
+  }
+#elif __APPLE__
+  sockfd = open("/dev/bpf0", O_RDWR);
+
+  ioctl(sockfd, BIOCSBLEN, 65536);
+  ioctl(sockfd, BIOCGBLEN, 65536);
+
+  ioctl(sockfd, BIOCSETIF, &ifr);
+
+  ioctl(sockfd, BIOCPROMISC, NULL);
+#endif
 
   socklen_t size = sizeof(sll);
   while (true) {
