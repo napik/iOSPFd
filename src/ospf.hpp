@@ -2,7 +2,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/time.h>
+#include <ctime>
 #include <sys/types.h>
 #include <thread>
 #include <variant>
@@ -10,19 +10,38 @@
 
 using namespace std;
 
-void ospf_send();
+class OSPF_Server {
 
-void ospf_recv_dospf();
+public:
+    void ospf_send();
 
-void ospf_recv_allospf();
+    void ospf_recv_dd_ospf();
+
+    void ospf_recv_all_ospf();
+
+    std::thread ospf_send_thread();
+
+    std::thread ospf_recv_dd_ospf_thread() {
+        return std::thread(&OSPF_Server::ospf_recv_dd_ospf, this);
+    };
+
+    std::thread ospf_recv_all_ospf_thread();
+
+private:
+    long checksum(unsigned short *data, unsigned int count);
+
+    void *connection_handler(int socket_desc);
+
+    unsigned char *printOspfHeader(unsigned char *buffer, const sockaddr_in &sll);
+
+    void printOspfData(unsigned char *buffer);
+};
 
 // Non DR/BDR routers send on 224.0.0.6 (this is to DR's) and listen to 224.0.0.5 (other ospf routers)
 #define MULTICAST_AllSPFRouters "224.0.0.5"
 #define MULTICAST_AllDRouters "224.0.0.6"
 #define OSPF_PROTOCOL_NUMBER 89
 #define len_hello (sizeof(struct ospf_hello))
-#define len_header (sizeof(struct ospf_header))
-#define len_data (len_header + len_hello)
 
 /*
 Version (1-byte)	- 2
@@ -72,6 +91,7 @@ Authentication (8-bytes)                   	- Authentication data to verify the 
 enum class ospf_header_type : uint8_t {
     HELLO = 1, DD = 2, LSR = 3, LSU = 4, LSA = 5
 };
+
 struct ospf_header {
     uint8_t version;
     ospf_header_type type;
@@ -83,6 +103,7 @@ struct ospf_header {
     uint64_t Authentication;
 };
 
+#define len_header (sizeof(struct ospf_header))
 /*****************************************************************
  *                        Hello Packet                           *
  *****************************************************************
@@ -101,16 +122,21 @@ struct ospf_header {
  |                          Neighbor                             |
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
+/* OSPF Hello definition. */
+#pragma pack(push, 1)
+
 struct ospf_hello {
-    uint32_t NetworkMask;
+    struct in_addr NetworkMask;
     uint16_t HelloInterval;
     uint8_t option;
     uint8_t rtlpri;
     uint32_t RouterDeadInterval;
     struct in_addr DesignatedRouter;
     struct in_addr BackupDesignatedRouter;
-    struct in_addr Neighbor;
+    in_addr *Neighbors;
 };
+
+#pragma pack(pop)
 
 /*****************************************************************
  *                   	     LSA Header                          *
@@ -152,17 +178,14 @@ struct ospf_lsa_header {
     uint16_t lsa_age;
     uint8_t option;
     ospf_lsa_header_ls_type ls_type;
-    // uint32_t link_state_id;
     struct in_addr link_state_id;
-    // uint32_t adv_router;
     struct in_addr adv_router;
-    uint32_t ls_sequence_numer;
+    uint32_t ls_sequence_number;
     uint16_t ls_checksum;
-    uint16_t lengnt;
+    uint16_t length;
 };
 
-/*
-Router-LSAs
+/* Router-LSAs
 
  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  |    0    |V|E|B|        0      |            # links            |
@@ -311,8 +334,8 @@ struct as_external_lsa {
 
 struct ospf_lsa_identification {
     uint32_t ls_type;
-    uint32_t link_state_id;
-    uint32_t adv_router;
+    in_addr link_state_id;
+    in_addr adv_router;
 };
 
 struct ospf_lsa_update {
